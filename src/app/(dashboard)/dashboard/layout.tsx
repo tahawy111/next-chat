@@ -1,5 +1,7 @@
+import FriendRequestsSidebarOptions from "@/components/FriendRequestsSidebarOptions";
 import { Icon, Icons } from "@/components/Icons";
 import SignOutButton from "@/components/SignOutButton";
+import { fetchRedis } from "@/helpers/redis";
 import { getServerSession } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,6 +30,15 @@ const Layout = async ({ children }: layoutProps) => {
       Icon: "UserPlus",
     },
   ];
+  
+  const unseenRequestCount = (
+    (await fetchRedis(
+      "smembers",
+      `user:${session.user.id}:incoming_friend_requests`
+    )) as User[]
+  ).length
+
+  console.log(unseenRequestCount)
 
   return (
     <div className="w-full flex h-screen">
@@ -67,6 +78,10 @@ const Layout = async ({ children }: layoutProps) => {
                   );
                 })}
               </ul>
+            </li>
+
+            <li>
+              <FriendRequestsSidebarOptions sessionId={session.user.id} initialUnseenRequestCount={unseenRequestCount} />
             </li>
 
             <li className='-mx-6 mt-auto flex items-center'>
